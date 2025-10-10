@@ -1,0 +1,138 @@
+% --- 1. CREATE YOUR SAMPLE DATA VECTORS ---
+% Replace this section with your actual data vectors.
+% Make sure all vectors are the same length!
+
+state_optimal = load("state_optimal_171.mat");
+fr = load("fropt_171deg2.mat").Fr_opt;
+fl = load("flopt_171deg2.mat").Fl_opt;
+fl = [fl;0.18]-0.18;
+fr = [fr;0.18]-0.18;
+
+y = state_optimal.state_opt(:,1);
+z = state_optimal.state_opt(:,2);
+phi = state_optimal.state_opt(:,3);
+theta = state_optimal.state_opt(:,4);
+
+dronePendulumAnimation_fromData(time, y,z, phi, theta, fl, fr);
+
+% --- 3. THE ANIMATION FUNCTION ITSELF ---
+% (This function should be in the same file or on your MATLAB path)
+function dronePendulumAnimation_fromData(time, y, z, phi, theta, fl, fr)
+
+    drone_r = 0.1;
+    pendulum_length = 0.3;
+    ball_radius = 0.2;
+    
+    % Check if data vectors have the same length
+    if ~isequal(length(time), length(y), length(z), length(phi), length(theta), length(fl), length(fr))
+        error('All input data vectors must have the same length.');
+    end
+
+    % --- Setup Figure and Axes ---
+    figure('Name', 'Drone with Pendulum Animation (from Data)', 'Renderer', 'painters');
+    ax = gca;
+    hold on;
+    grid on;
+    axis equal;
+    
+    % Dynamically set axis limits based on data range, with a buffer
+    y_min = min(y) - pendulum_length - 0.5;
+    y_max = max(y) + pendulum_length + 0.5;
+    z_min = min(z) - pendulum_length - 0.2;
+    z_max = max(z) + pendulum_length + 0.5;
+    xlim([y_min y_max]);
+    ylim([z_min z_max]);
+    
+    xlabel('Y Position (m)');
+    ylabel('Z Position (m)');
+    title('Drone with Pendulum');
+
+    % --- Plot Initial State (Get handles to graphical objects) ---
+    
+    % Get initial values from the first element of the data vectors
+    y0 = y(1);
+    z0 = z(1);
+    phi0 = phi(1);
+    theta0 = theta(1);
+    fl0 = fl(1);
+    fr0 = fr(1);
+
+    % Drone Body
+    drone_left_y0 = y0-drone_r*cos(phi0);
+    drone_right_y0 = y0+drone_r*cos(phi0);
+    drone_left_z0 = z0-drone_r*sin(phi0);
+    drone_right_z0 = z0+drone_r*sin(phi0);
+    drone_body = plot(ax, [drone_left_y0, drone_right_y0], [drone_left_z0, drone_right_z0], 'LineWidth',5);
+
+    % Forces
+    fl_y0 = fl0*sin(phi0);
+    fl_z0 = fl0*cos(phi0);
+    fr_y0 = fr0*sin(phi0);
+    fr_z0 = fr0*cos(phi0);
+    
+    force_L = quiver(drone_left_y0, drone_left_z0, -fl_y0, fl_z0, 3, 'LineWidth',1.5, 'MaxHeadSize',2);
+    force_R = quiver(drone_right_y0, drone_right_z0, -fr_y0, fl_z0, 3, 'LineWidth',1.5, 'MaxHeadSize',2);
+
+    % Drone Rotors
+    % rotor_offset_x = drone_width/2 * 0.7;
+    % rotor_radius = 0.1;
+    % rotor1_handle = plot(ax, drone_x_0 - rotor_offset_x, drone_y_0 + drone_height/2 + rotor_radius, 'o', ...
+    %                      'MarkerSize', 8, 'MarkerFaceColor', [0.3 0.3 0.3], 'MarkerEdgeColor', 'k');
+    % rotor2_handle = plot(ax, drone_x_0 + rotor_offset_x, drone_y_0 + drone_height/2 + rotor_radius, 'o', ...
+    %                      'MarkerSize', 8, 'MarkerFaceColor', [0.3 0.3 0.3], 'MarkerEdgeColor', 'k');
+
+    % Calculate initial ball position
+    ball_y0 = y0 + pendulum_length * sin(theta0);
+    ball_z0 = z0 - pendulum_length * cos(theta0);
+
+    % Pendulum rod and Ball
+    pendulum_handle = plot(ax, [y0,ball_y0], [z0, ball_z0], 'r-', 'LineWidth', 2);
+    ball_handle = plot(ax, ball_y0, ball_z0, 'o', 'MarkerSize', ball_radius*2*10, 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
+
+    % --- Animation Loop ---
+    for k = 1:length(time)
+        % --- Get current state from pre-calculated vectors ---
+        % NO SIMULATION HERE - just reading the data for frame 'k'
+        drone_y = y(k);
+        drone_z = z(k);
+        drone_phi = phi(k);
+        drone_theta = theta(k);
+        drone_fl = fl(k);
+        drone_fr = fr(k);
+        
+        % Attachment point follows the drone
+        
+        % --- Update Graphical Objects ---
+        % Update drone body position
+        drone_left_y = drone_y-drone_r*cos(drone_phi);
+        drone_right_y = drone_y+drone_r*cos(drone_phi);
+        drone_left_z = drone_z-drone_r*sin(drone_phi);
+        drone_right_z = drone_z+drone_r*sin(drone_phi);
+        
+        set(drone_body, 'XData', [drone_left_y, drone_right_y],'YData', [drone_left_z, drone_right_z])
+     
+        % Update forces
+        fl_y = drone_fl*sin(drone_phi);
+        fl_z = drone_fl*cos(drone_phi);
+        fr_y = drone_fr*sin(drone_phi);
+        fr_z = drone_fr*cos(drone_phi);   
+        
+        set(force_L, 'XData', drone_left_y, 'YData', drone_left_z, 'UData',-fl_y, 'VData',fl_z);
+        set(force_R, 'XData', drone_right_y, 'YData', drone_right_z, 'UData',-fr_y, 'VData',fr_z);
+
+        % Calculate new ball position based on data
+        ball_y = drone_y + pendulum_length * sin(drone_theta);
+        ball_z = drone_z - pendulum_length * cos(drone_theta);
+
+        % Update pendulum rod
+        set(pendulum_handle, 'XData', [drone_y, ball_y], 'YData', [drone_z, ball_z]);
+
+        % Update ball
+        set(ball_handle, 'XData', ball_y, 'YData', ball_z);
+
+        % --- Redraw and Pause ---
+        drawnow;
+        pause(0.01);
+    end
+    hold off
+end
