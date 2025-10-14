@@ -1,13 +1,12 @@
-% --- 1. CREATE YOUR SAMPLE DATA VECTORS ---
-% Replace this section with your actual data vectors.
-% Make sure all vectors are the same length!
+% Animation for drone given the state & input vectors
 
-state_optimal = load("state_optimal_171.mat");
-fr = load("fropt_171deg2.mat").fr_opt;
-fl = load("flopt_171deg2.mat").fl_opt;
-fl = [fl;0];
-fr = [fr;0];
+state_optimal = load("data/state_optimal_178.mat");
+fr = load("data/fr_opt_178deg.mat").Fr_opt;
+fl = load("data/fl_opt_178deg.mat").Fl_opt;
+fl = [fl;0.18]-0.18;
+fr = [fr;0.18]-0.18;
 
+time = linspace(0,4,100);
 y = state_optimal.state_opt(:,1);
 z = state_optimal.state_opt(:,2);
 phi = state_optimal.state_opt(:,3);
@@ -15,13 +14,12 @@ theta = state_optimal.state_opt(:,4);
 
 dronePendulumAnimation_fromData(time, y,z, phi, theta, fl, fr);
 
-% --- 3. THE ANIMATION FUNCTION ITSELF ---
-% (This function should be in the same file or on your MATLAB path)
+% animation function
 function dronePendulumAnimation_fromData(time, y, z, phi, theta, fl, fr)
 
     drone_r = 0.1;
     pendulum_length = 0.3;
-    ball_radius = 0.1;
+    ball_radius = 0.2;
     
     % Check if data vectors have the same length
     if ~isequal(length(time), length(y), length(z), length(phi), length(theta), length(fl), length(fr))
@@ -54,8 +52,8 @@ function dronePendulumAnimation_fromData(time, y, z, phi, theta, fl, fr)
     z0 = z(1);
     phi0 = phi(1);
     theta0 = theta(1);
-    fl0 = fl(0);
-    fr0 = fr(0);
+    fl0 = fl(1);
+    fr0 = fr(1);
 
     % Drone Body
     drone_left_y0 = y0-drone_r*cos(phi0);
@@ -70,8 +68,8 @@ function dronePendulumAnimation_fromData(time, y, z, phi, theta, fl, fr)
     fr_y0 = fr0*sin(phi0);
     fr_z0 = fr0*cos(phi0);
     
-    force_L = quiver(drone_left_y0, drone_left_z0, -fl_y0, fl_z0);
-    force_R = quiver(drone_right_y0, drone_right_z0, -fr_y0, fl_z0);
+    force_L = quiver(drone_left_y0, drone_left_z0, -fl_y0, fl_z0, 3, 'LineWidth',1.5, 'MaxHeadSize',2);
+    force_R = quiver(drone_right_y0, drone_right_z0, -fr_y0, fl_z0, 3, 'LineWidth',1.5, 'MaxHeadSize',2);
 
     % Drone Rotors
     % rotor_offset_x = drone_width/2 * 0.7;
@@ -115,12 +113,10 @@ function dronePendulumAnimation_fromData(time, y, z, phi, theta, fl, fr)
         fl_y = drone_fl*sin(drone_phi);
         fl_z = drone_fl*cos(drone_phi);
         fr_y = drone_fr*sin(drone_phi);
-        fr_z = drone_fr*cos(drone_phi);
-    
+        fr_z = drone_fr*cos(drone_phi);   
         
-        set(force_L, 'XData', drone_left_y, 'YData', drone_left_z, -fl_y, fl_z);
-        force_R = quiver(drone_right_y, drone_right_z, -fr_y, fl_z);
-
+        set(force_L, 'XData', drone_left_y, 'YData', drone_left_z, 'UData',-fl_y, 'VData',fl_z);
+        set(force_R, 'XData', drone_right_y, 'YData', drone_right_z, 'UData',-fr_y, 'VData',fr_z);
 
         % Calculate new ball position based on data
         ball_y = drone_y + pendulum_length * sin(drone_theta);

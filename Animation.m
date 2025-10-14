@@ -1,13 +1,14 @@
-% --- 1. CREATE YOUR SAMPLE DATA VECTORS ---
-% Replace this section with your actual data vectors.
-% Make sure all vectors are the same length!
+clear; clc; close all;
 
-state_optimal = load("state_optimal_171.mat");
-fr = load("fropt_171deg2.mat").Fr_opt;
-fl = load("flopt_171deg2.mat").Fl_opt;
+% Animation for drone given the state & input vectors
+
+state_optimal = load("data/state_optimal_178.mat");
+fr = load("data/fr_opt_178deg.mat").Fr_opt;
+fl = load("data/fl_opt_178deg.mat").Fl_opt;
 fl = [fl;0.18]-0.18;
 fr = [fr;0.18]-0.18;
 
+time = linspace(0,4,101)';
 y = state_optimal.state_opt(:,1);
 z = state_optimal.state_opt(:,2);
 phi = state_optimal.state_opt(:,3);
@@ -15,8 +16,7 @@ theta = state_optimal.state_opt(:,4);
 
 dronePendulumAnimation_fromData(time, y,z, phi, theta, fl, fr);
 
-% --- 3. THE ANIMATION FUNCTION ITSELF ---
-% (This function should be in the same file or on your MATLAB path)
+% animation function
 function dronePendulumAnimation_fromData(time, y, z, phi, theta, fl, fr)
 
     drone_r = 0.1;
@@ -134,5 +134,5 @@ function dronePendulumAnimation_fromData(time, y, z, phi, theta, fl, fr)
         drawnow;
         pause(0.01);
     end
-    hold off
+    hold off;
 end
