@@ -1,0 +1,4 @@
+[submodule "CrazyFlie/crazyflie-firmware"]
+	path = CrazyFlie/crazyflie-firmware
+	url = https://github.com/Cadevaux/crazyflie-firmware.git
+	branch = master
