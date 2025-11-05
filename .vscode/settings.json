@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "kalman_core_params_defaults.h": "c",
+        "static_mem.h": "c",
+        "kalman_supervisor.h": "c",
+        "param.h": "c"
+    }
+}
